@@ -29,3 +29,16 @@ That brings me to what we pay:
 But what we get is much faster writes. How much faster? Well, look. Now, instead of scanning the entire file, all we need to do is fetch the offset, seek to it, and read. While seeking a lot is slow (IIRC a hard disk seek takes 10ms), it's a lot faster than reading the whole database all the time!
 
 Let me try implementing it in a new branch called `dmitry/keydir`.
+
+One thing I do need to understand here is how seeking works. Let's just say we are working with text files here, not binary files. I have two questions.
+* When you call `write` does it return the number of characters written, or the number of bytes?
+* When you call `seek` do you specify the number of characters, or the number of bytes?
+I bet it's the number of characters. Let's try it. I'll create a file, and then write 'a😄️' to it. The a will take only 1 byte (any ascii char takes up 1 byte) and the smiley face will take more.
+
+I just played around with this, and it makes _no_ sense. The Python docs *did* warn me: for text files, "write returns an opaque number".
+
+In that case, what I have to do is work with binary files. I will need to decode the binary into a reasonable text encoding, and to prevent confusion I'll need to specify somewhere that it's UTF-8.
+
+OK, now things make a lot more sense. Binary, it is.
+
+Oh, one thing I forgot: the keydir needs to hold not just the offset, but also the length of the value to read. Otherwise, we don't know how much to read.

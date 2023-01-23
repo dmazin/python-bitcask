@@ -1,16 +1,14 @@
 import argparse
 from typing import Optional
 
-
-DATASTORE_FILE_NAME = "datastore.txt"
-OPERATION_SET = "set"
-OPERATION_GET = "get"
+from keydir import set as keydir_set, build_keydir, get as keydir_get
+import constants
 
 
 def _set_up_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--operation", choices=[OPERATION_SET, OPERATION_GET], required=True
+        "--operation", choices=[constants.OPERATION_SET, constants.OPERATION_GET], required=True
     )
     parser.add_argument("--key", required=True)
     # TODO validate that value is present when operation=set
@@ -21,31 +19,47 @@ def _set_up_args():
 
 
 def get(key: str) -> Optional[str]:
+    build_keydir() 
+
+    keydir_value = keydir_get(key)
+    if keydir_value is None:
+        return None
+    
+    offset: int
+    size: int
+    offset, size = keydir_value
+
     # TODO ensure that this file exists before trying to open it
-    datastore = open(DATASTORE_FILE_NAME)
+    datastore = open(constants.DATASTORE_FILE_NAME, mode='br')
+    datastore.seek(offset)
+    kv_pair_bytes = datastore.read(size)
+    kv_pair_str: str = kv_pair_bytes.decode(constants.ENCODING)
+    kv_pair_str_stripped = kv_pair_str.strip()
 
-    value: Optional[str] = None
-    for line in datastore:
-        line: str = line.strip()  # Remove the trailing \n
-        current_key, current_value = line.split(",")
-        if current_key == key:
-            value = current_value
-
-    return value
+    return kv_pair_str_stripped
 
 
 def set(key: str, value: str) -> None:
+    kv_pair = f"{key},{value}\n"
+    kv_pair_bytes: bytes = kv_pair.encode(constants.ENCODING)
+
     # `a` mode will create the file if it doesn't exist; if it does exist, we
     # will append to the end of the file
-    datastore = open(DATASTORE_FILE_NAME, mode="a")
-    datastore.write(f"{key},{value}\n")
+    datastore = open(constants.DATASTORE_FILE_NAME, mode="ab")
+
+    current_position: int = datastore.tell()
+    bytes_written: int = datastore.write(kv_pair_bytes)
+
+    keydir_set(key, current_position, bytes_written)
+
+    print(f"wrote {bytes_written} at {current_position}")
 
 
 if __name__ == "__main__":
     args = _set_up_args()
 
-    if args.operation == OPERATION_SET:
+    if args.operation == constants.OPERATION_SET:
         set(args.key, args.value)
 
-    if args.operation == OPERATION_GET:
+    if args.operation == constants.OPERATION_GET:
         print(get(args.key))
