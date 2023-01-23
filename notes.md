@@ -42,3 +42,5 @@ In that case, what I have to do is work with binary files. I will need to decode
 OK, now things make a lot more sense. Binary, it is.
 
 Oh, one thing I forgot: the keydir needs to hold not just the offset, but also the length of the value to read. Otherwise, we don't know how much to read.
+
+It works! You can see the work in commit `51da2`.
