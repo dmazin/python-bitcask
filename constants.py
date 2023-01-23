@@ -3,3 +3,6 @@ OPERATION_SET = "set"
 OPERATION_GET = "get"
 
 ENCODING = 'utf-8'
+
+SERVER_ADDRESS = "localhost"
+SERVER_PORT = 8080

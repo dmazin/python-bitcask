@@ -1,7 +1,7 @@
 import argparse
 from typing import Optional
 
-from keydir import set as keydir_set, build_keydir, get as keydir_get
+from keydir import keydir
 import constants
 
 
@@ -19,9 +19,7 @@ def _set_up_args():
 
 
 def get(key: str) -> Optional[str]:
-    build_keydir() 
-
-    keydir_value = keydir_get(key)
+    keydir_value = keydir.get(key)
     if keydir_value is None:
         return None
     
@@ -35,6 +33,8 @@ def get(key: str) -> Optional[str]:
     kv_pair_bytes = datastore.read(size)
     kv_pair_str: str = kv_pair_bytes.decode(constants.ENCODING)
     kv_pair_str_stripped = kv_pair_str.strip()
+
+    # TODO return just the value, not the kv_pair
 
     return kv_pair_str_stripped
 
@@ -50,9 +50,9 @@ def set(key: str, value: str) -> None:
     current_position: int = datastore.tell()
     bytes_written: int = datastore.write(kv_pair_bytes)
 
-    keydir_set(key, current_position, bytes_written)
+    keydir.set(key, current_position, bytes_written)
 
-    print(f"wrote {bytes_written} at {current_position}")
+    print(f"wrote {bytes_written} bytes at offset {current_position}")
 
 
 if __name__ == "__main__":
