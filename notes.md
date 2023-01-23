@@ -8,3 +8,24 @@ So, let's implement this thing. One thing: I tend to get really hung up on organ
 Cool, that's done. See commit a2bd15. It's funny how much of programming is boring. For example, even this simplest implementation would benefit from command line validation (e.g. the value must be passed if we are doing a `set`), or other kinds of checks (when doing a `get`, make sure the file exists before trying to open it). I have left lots of that out because I am focused on more complex tasks which are more likely to need me to interface with the standard library.
 
 OK, now, there *is* a way to improve the non-worst-case in the current approach: we can scan the file *backwards* and stop scanning once we've found our key. The worst case would not improve (we might still have to scan the entire file). Scanning a file backwards is fairly complex, as far as I know: you scan it N bytes at a time. Those N bytes may contain an entire key/value pair (which you will know because you found two newlines [why not one? because maybe you scanned a bit of the beginning of a key/value pair, followed by a newline, and then a bit of the end of a key/value pair, e.g. "oo\nba"]), in which case you can extract it and add the remainder to your buffer. Or, they may not, in which case you have to keep scanning. I mean, it seems like a pretty good exercise... let me try it. OK, I hacked away at it for a couple hours, and learned some stuff, but I'm not very interested in pursuing it to the end and using it in the database. If interested, check out the `dmitry/backwards-simplest-db` branch, or for an actual implementation of reading a file in reverse, see [this SO answer](https://stackoverflow.com/a/23646049/410963).
+
+Hello! I am back. It's been a little while. I should be studying for a job interview tomorrow, but I'm not sure what to study, so instead I'll build my Python confidence by working on this. So, what's next? Let's say we _had_ implemented the reverse-reading store. What would its characteristics be?
+* fast to start (doesn't need to load anything into memory)
+* low memory usage (the only thing we load into memory is the current part of the datastore file that we are scanning)
+* fast writes: still just append to a file
+* slow reads: the reverse reading is not a huge improvement on the original; it just saves us from having to read the whole file *every* time
+
+So, how can we improve on this? Remember that there is no free lunch in computing. You always have to trade something for something. What do we want to improve? The reads. And what can we spend to improve it? Note that the memory usage is extremely low, the writes are extremely fast, and the database is very fast to start. We have a lot of stuff we can trade. Here's one thing we can do.
+
+How do databases make reads faster? Using an index. Without an index, database reads would always be slow as shit! How can we make finding a value in our datastore file faster? We can keep an in-memory dictionary mapping keys to the value locations in the data store! What would that look like, and what would we pay for it?
+
+Here's what it would look like: the keys of the dictionary would be strings (because our datastore keys are strings) and the values would be integers corresponding to offsets in the source of truth datastore file (have I yet assigned it a name I can use to easily refer to it? let's call it the "datastore file"). Why don't we just store the values in this dictionary? Because the values could be big, and the store has one serious limitation: all our keys need to fit in memory. This is how Bitcask is actually implemented, but it's a pretty serious limitation.
+
+That brings me to what we pay:
+* memory usage is increased, because we now need to store keys and offsets in memory
+* writes are slower, because when we write we need to add/update the entry in the dict
+* the database is slower to start, because we need to load the dict
+
+But what we get is much faster writes. How much faster? Well, look. Now, instead of scanning the entire file, all we need to do is fetch the offset, seek to it, and read. While seeking a lot is slow (IIRC a hard disk seek takes 10ms), it's a lot faster than reading the whole database all the time!
+
+Let me try implementing it in a new branch called `dmitry/keydir`.
