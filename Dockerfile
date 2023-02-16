@@ -5,6 +5,8 @@ RUN apt-get install lsof
 
 WORKDIR /app
 
-COPY * .
+COPY ./src/* .
+
+RUN touch datastore.txt
 
 ENTRYPOINT [ "python", "server.py" ]

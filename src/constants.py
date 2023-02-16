@@ -4,5 +4,6 @@ OPERATION_GET = "get"
 
 ENCODING = 'utf-8'
 
-SERVER_ADDRESS = "localhost"
+# SERVER_ADDRESS is 0.0.0.0 because otherwise Host<>Container networking won't work.
+SERVER_ADDRESS = "0.0.0.0"
 SERVER_PORT = 8080
