@@ -34,9 +34,10 @@ def get(key: str) -> Optional[str]:
     kv_pair_str: str = kv_pair_bytes.decode(constants.ENCODING)
     kv_pair_str_stripped = kv_pair_str.strip()
 
-    # TODO return just the value, not the kv_pair
+    value: str
+    key, value = kv_pair_str_stripped.split(',')
 
-    return kv_pair_str_stripped
+    return value
 
 
 def set(key: str, value: str) -> None:
