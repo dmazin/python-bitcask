@@ -31,22 +31,26 @@ class MyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         """
-        Expects a request like `curl -X POST --json '{"foo": "bar", "bar": "baz"}' http:/`
+        Expects a request like `curl -X POST --json '{"key": "foo", "value": "bar"}' http:/`
         """
         content_length: int = int(self.headers.get('Content-Length', 0))
         if content_length == 0:
             self.send_response(400)
             self.end_headers()
+            return
 
         post_body_bytes: bytes = self.rfile.read(content_length)
         post_body: Dict = json.loads(post_body_bytes.decode())
 
-        # TODO This is a little cheeky. Instead, be boring and just take a dict
-        # that looks like {"key": "foo", "value": "bar"}.
-        key: str
-        value: str
-        for key, value in post_body.items():
-            db.set(key, value)
+        key = post_body.get("key")
+        value = post_body.get("value")
+
+        if not key or not value:
+            self.send_response(400)
+            self.end_headers()
+            return
+
+        db.set(key, value)
 
         self.send_response(201)
         self.end_headers()
