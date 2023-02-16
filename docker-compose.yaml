@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  server:
+    image: python-bitcask:latest
+    ports:
+      - 8080:8080
+    # volumes:
+    #   - ./YOUR_LOCAL_DIRECTORY:/YOUR_CONTAINER_DIRECTORY
+    # environment:
+    #   - ENVIRONMENT_VARIABLE_NAME=ENVIRONMENT_VARIABLE_VALUE
