@@ -9,6 +9,9 @@ import db
 
 class MyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self) -> None:
+        """
+        Expects a request like `GET /?key=foo`
+        """
         parsed_url = urllib.parse.urlparse(self.path)
         qs: dict[str, list[str]] = urllib.parse.parse_qs(parsed_url.query)
         key: Optional[str] = qs.get('key', [None])[0]
