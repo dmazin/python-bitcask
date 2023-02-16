@@ -15,6 +15,7 @@ class KeyDir:
         return self.keydir.get(key)
 
     def build_keydir(self) -> None:
+        print("debug: building keydir")
         with open(constants.DATASTORE_FILE_NAME, "rb") as infile:
             current_position: int = infile.tell()
             line: bytes

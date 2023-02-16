@@ -34,6 +34,7 @@ class MyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    print("debug: server is starting")
     server_address: Tuple[str, int] = (constants.SERVER_ADDRESS, constants.SERVER_PORT)
     httpd = http.server.HTTPServer(server_address, MyHTTPRequestHandler)
     httpd.serve_forever()
